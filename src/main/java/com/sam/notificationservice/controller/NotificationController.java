@@ -26,7 +26,6 @@ public class NotificationController {
     @GetMapping("/send/{matchId}")
     public ResponseEntity<String> sendManualNotification(@PathVariable Long matchId) {
         try {
-            // Call the notification service to check for matches
             notificationService.checkMatchesForNotification(matchId);
             return ResponseEntity.ok("Notification sent successfully for match ID: " + matchId);
         } catch (MatchNotFoundException e) {

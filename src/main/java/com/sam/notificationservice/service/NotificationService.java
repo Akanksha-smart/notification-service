@@ -1,6 +1,5 @@
 package com.sam.notificationservice.service;
 
-
 import com.sam.notificationservice.entity.Match;
 import com.sam.notificationservice.entity.NotificationEntity;
 import com.sam.notificationservice.repository.MatchRepository;

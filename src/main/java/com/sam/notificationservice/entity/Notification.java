@@ -2,6 +2,7 @@ package com.sam.notificationservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name ="notification_entity")
-public class NotificationEntity {
+@Builder
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +25,7 @@ public class NotificationEntity {
     private boolean seen = false;
 
 
-    public  NotificationEntity(String message, LocalDateTime scheduledTime) {
+    public Notification(String message, LocalDateTime scheduledTime) {
         this.message = message;
         this.scheduledTime = scheduledTime;
 

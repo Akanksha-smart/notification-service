@@ -1,49 +1,73 @@
 package com.sam.notificationservice.service;
 
-import com.sam.notificationservice.entity.Match;
-import com.sam.notificationservice.entity.NotificationEntity;
-import com.sam.notificationservice.repository.MatchRepository;
+import com.sam.notificationservice.client.MatchClient;
+import com.sam.notificationservice.dto.MatchDTO;
+import com.sam.notificationservice.entity.Notification;
 import com.sam.notificationservice.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-    @Service
-    public class NotificationService {
+@Service
+public class NotificationService {
 
-        @Autowired
-        private NotificationRepository notificationRepository;
+    @Autowired
+   private NotificationRepository notificationRepository;
 
-        @Autowired
-        private MatchRepository matchRepository;
+    @Autowired
+   private MatchClient matchClient;
 
-        public void saveNotification(String message) {
-            NotificationEntity notification = new NotificationEntity(message, LocalDateTime.now());
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+
+        // Save the notification to the database
+        public void saveNotification(String message, Long matchId) {
+            Notification notification = new Notification();
+            notification.setMessage(message);
+            notification.setScheduledTime(LocalDateTime.now());
+            notification.setSeen(false);  // Mark as unseen initially
             notificationRepository.save(notification);
         }
 
-        public void sendNotification(String message) {
-            saveNotification(message);
+        // Send a WebSocket message and save the notification in the database
+        public void sendNotification(String message, Long matchid) {
+            saveNotification(message, matchid);  // Save to DB
+            messagingTemplate.convertAndSendToUser(String.valueOf(matchid), "/topic/notifications", message);  // Send WebSocket
         }
 
-        public void checkMatchesForNotification(Long matchId) {
-            List<Match> matches = matchRepository.findByMatchId(matchId);
 
-            LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        public void checkMatchesForNotification() {
+            Long tournamentId = 1L;  // Replace with the actual tournament ID
+            List<MatchDTO> matches = matchClient.getMatchesByTournamentId(tournamentId);
 
-            for (Match match : matches) {
-                LocalDateTime matchStartTime = match.getMatchDateTime().truncatedTo(ChronoUnit.MINUTES);
-                LocalDateTime notificationTime = matchStartTime.minusMinutes(15);
+            for (MatchDTO match : matches) {
+                LocalDateTime matchStartTime = match.getStartTime();
+                LocalDateTime currentTime = LocalDateTime.now();
 
-                if (currentTime.isEqual(notificationTime)) {
-                    sendNotification("Match between " + match.getTeamA() + " and " + match.getTeamB() + " starts in 15 minutes!");
+                // Notify 15 minutes before the match starts
+                if (currentTime.isBefore(matchStartTime) && currentTime.plusMinutes(15).isAfter(matchStartTime)) {
+                    sendNotification("Your match starts in 15 minutes!",match.getId());
                 }
             }
         }
 
+        // Get unseen notifications for a particular user (for a notification dashboard)
+        public List<Notification> getUnseenNotifications(String recipientEmail) {
+            return notificationRepository.findByRecipientEmailAndSeenFalse(recipientEmail);
+        }
+
+        // Mark notification as seen
+        public void markNotificationAsSeen(Long notificationId) {
+            Notification notification = notificationRepository.findById(notificationId).orElse(null);
+            if (notification != null) {
+                notification.setSeen(true);
+                notificationRepository.save(notification);
+            }
+        }
+
+
 }
-
-

@@ -1,0 +1,17 @@
+package com.sam.notificationservice.client;
+
+import com.sam.notificationservice.dto.MatchDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
+
+
+@FeignClient(name = "match-service", url = "http://localhost:8080/api/admin")
+public interface MatchClient {
+
+    @GetMapping("/tournaments/{id}/matches")
+    List<MatchDTO> getMatchesByTournamentId(@PathVariable("id") Long tournamentId);
+}
+

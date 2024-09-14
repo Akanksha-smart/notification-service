@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 
 
-@FeignClient(name = "match-service", url = "http://localhost:8080/api/admin")
+@FeignClient(name = "match-service", url = "http://10.34.20.35:8080/api/admin")
 public interface MatchClient {
 
     @GetMapping("/tournaments/{id}/matches")

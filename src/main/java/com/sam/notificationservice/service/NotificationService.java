@@ -1,6 +1,5 @@
 package com.sam.notificationservice.service;
 
-import com.sam.notificationservice.client.MatchClient;
 import com.sam.notificationservice.dto.MatchDTO;
 import com.sam.notificationservice.entity.Notification;
 import com.sam.notificationservice.repository.NotificationRepository;

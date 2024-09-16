@@ -1,16 +1,13 @@
 package com.sam.notificationservice.service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import com.sam.notificationservice.client.MatchClient;
 import com.sam.notificationservice.dto.MatchDTO;
 import com.sam.notificationservice.entity.Notification;
 import com.sam.notificationservice.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

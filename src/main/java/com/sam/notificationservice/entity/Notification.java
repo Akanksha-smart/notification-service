@@ -23,12 +23,4 @@ public class Notification {
     private String recipient;
     private LocalDateTime scheduledTime;
     private boolean seen = false;
-
-
-    public Notification(String message, LocalDateTime scheduledTime) {
-        this.message = message;
-        this.scheduledTime = scheduledTime;
-
-
-    }
 }

@@ -3,7 +3,6 @@ package com.sam.notificationservice.service;
 
 import com.sam.notificationservice.entity.Match;
 import com.sam.notificationservice.entity.Notification;
-import com.sam.notificationservice.entity.NotificationEntity;
 import com.sam.notificationservice.repository.MatchRepository;
 import com.sam.notificationservice.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;

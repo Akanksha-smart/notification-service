@@ -1,16 +1,13 @@
 package com.sam.notificationservice.service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import com.sam.notificationservice.client.MatchClient;
 import com.sam.notificationservice.dto.MatchDTO;
 import com.sam.notificationservice.entity.Notification;
 import com.sam.notificationservice.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -31,8 +28,6 @@ public class NotificationServiceTest {
     @Mock
     private NotificationRepository notificationRepository;
 
-    @Mock
-    private MatchClient matchClient;
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
@@ -48,7 +43,7 @@ public class NotificationServiceTest {
         Long matchId = 1L;
 
         // Act
-        notificationService.saveNotification(message, matchId);
+        notificationService.saveNotification(message);
 
         // Assert
         verify(notificationRepository, times(1)).save(any(Notification.class));
@@ -60,7 +55,7 @@ public class NotificationServiceTest {
         Long matchId = 1L;
 
         // Act
-        notificationService.sendNotification(message, matchId);
+        notificationService.sendNotification(message);
 
         // Assert
         verify(notificationRepository, times(1)).save(any(Notification.class));
@@ -75,7 +70,7 @@ public class NotificationServiceTest {
         match.setStartTime(LocalDateTime.now().plusMinutes(15));
         match.setCoachEmail("coach@example.com");
 
-        when(matchClient.getMatchesByTournamentId(tournamentId)).thenReturn(Arrays.asList(match));
+//        when(matchClient.getMatchesByTournamentId(tournamentId)).thenReturn(Arrays.asList(match));
 
         // Act
         notificationService.checkMatchesForNotification();

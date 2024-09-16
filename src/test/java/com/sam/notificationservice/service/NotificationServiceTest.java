@@ -1,31 +1,36 @@
 package com.sam.notificationservice.service;
 
-import com.sam.notificationservice.entity.Match;
-import com.sam.notificationservice.entity.NotificationEntity;
-import com.sam.notificationservice.repository.MatchRepository;
+import java.util.Arrays;
+import java.util.List;
+
+import com.sam.notificationservice.dto.MatchDTO;
+import com.sam.notificationservice.entity.Notification;
 import com.sam.notificationservice.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-
+import static org.mockito.Mockito.when;
 
 public class NotificationServiceTest {
+
     @InjectMocks
     private NotificationService notificationService;
 
     @Mock
     private NotificationRepository notificationRepository;
 
+
     @Mock
-    private MatchRepository matchRepository;
+    private SimpMessagingTemplate messagingTemplate;
 
     @BeforeEach
     void setUp() {
@@ -34,48 +39,98 @@ public class NotificationServiceTest {
 
     @Test
     void testSaveNotification() {
-        String message = "Test notification message";
+        String message = "Match starting soon!";
+        Long matchId = 1L;
 
+        // Act
         notificationService.saveNotification(message);
 
-        verify(notificationRepository, times(1)).save(any(NotificationEntity.class));
+        // Assert
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
     void testSendNotification() {
-        String message = "Match notification message";
+        String message = "Match starting soon!";
+        Long matchId = 1L;
 
+        // Act
         notificationService.sendNotification(message);
 
-        verify(notificationRepository, times(1)).save(any(NotificationEntity.class));
+        // Assert
+        verify(notificationRepository, times(1)).save(any(Notification.class));
+        verify(messagingTemplate, times(1)).convertAndSendToUser(String.valueOf(eq(Optional.of(Optional.of(matchId)))), eq("/topic/notifications"), eq(message));
     }
 
     @Test
-    void testCheckMatchesForNotification_NoUpcomingMatches() {
-        Long matchId = 1L;
+    void testCheckMatchesForNotification() {
+        Long tournamentId = 1L;
 
-        when(matchRepository.findByMatchId(matchId)).thenReturn(Collections.emptyList());
+        MatchDTO match = new MatchDTO();
+        match.setStartTime(LocalDateTime.now().plusMinutes(15));
+        match.setCoachEmail("coach@example.com");
 
+//        when(matchClient.getMatchesByTournamentId(tournamentId)).thenReturn(Arrays.asList(match));
+
+        // Act
         notificationService.checkMatchesForNotification();
 
-        verify(notificationRepository, times(0)).save(any(NotificationEntity.class));
+        // Assert
+        verify(messagingTemplate, times(1)).convertAndSendToUser(eq("coach@example.com"), eq("/topic/notifications"), anyString());
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    void testCheckMatchesForNotification_MatchNotIn15Minutes() {
-        Long matchId = 1L;
-        Match match = new Match();
-        match.setMatchId(matchId);
-        match.setTeamA("Team A");
-        match.setTeamB("Team B");
-        match.setMatchDateTime(LocalDateTime.now().plusHours(1));
+    void testGetUnseenNotifications() {
+        String recipientEmail = "coach@example.com";
 
-        List<Match> matches = Collections.singletonList(match);
+        Notification notification1 = new Notification();
+        notification1.setSeen(false);
 
-        when(matchRepository.findByMatchId(matchId)).thenReturn(matches);
-        notificationService.checkMatchesForNotification();
+        Notification notification2 = new Notification();
+        notification2.setSeen(false);
 
-        verify(notificationRepository, times(0)).save(any(NotificationEntity.class));
+        when(notificationRepository.findByRecipientEmailAndSeenFalse(recipientEmail)).thenReturn(Arrays.asList(notification1, notification2));
+
+        // Act
+        List<Notification> unseenNotifications = notificationService.getUnseenNotifications(recipientEmail);
+
+        // Assert
+        assertEquals(2, unseenNotifications.size());
+        verify(notificationRepository, times(1)).findByRecipientEmailAndSeenFalse(recipientEmail);
+    }
+
+    @Test
+    void testMarkNotificationAsSeen() {
+        Long notificationId = 1L;
+
+        Notification notification = new Notification();
+        notification.setId(notificationId);
+        notification.setSeen(false);
+
+        when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
+
+        // Act
+        notificationService.markNotificationAsSeen(notificationId);
+
+        // Assert
+        assertEquals(true, notification.isSeen());
+        verify(notificationRepository, times(1)).save(notification);
+    }
+
+    @Test
+    void testMarkNotificationAsSeen_NotFound() {
+        Long notificationId = 1L;
+
+        when(notificationRepository.findById(notificationId)).thenReturn(Optional.empty());
+
+        // Act
+        notificationService.markNotificationAsSeen(notificationId);
+
+        // Assert
+        verify(notificationRepository, never()).save(any(Notification.class));
     }
 
 }
+
+

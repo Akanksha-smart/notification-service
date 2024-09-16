@@ -20,16 +20,16 @@ public class NotificationController {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    // Endpoint to manually trigger notifications based on the tournament ID
-    @GetMapping("/send/{matchId}")
-    public void sendManualNotification(@RequestParam Long matchId) {
-        notificationService.checkMatchesForNotification(matchId);
+
+    @GetMapping("/send")
+    public String sendManualNotification() {
+        return  notificationService.checkMatchesForNotification();
     }
 
 
     @GetMapping
     public List<NotificationEntity> getNotifications() {
-        return notificationRepository.findAll(); // Or any other logic to fetch notifications
+        return notificationRepository.findAll();
     }
 
 }

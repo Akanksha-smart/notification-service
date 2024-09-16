@@ -26,7 +26,5 @@ public class NotificationEntity {
     public  NotificationEntity(String message, LocalDateTime scheduledTime) {
         this.message = message;
         this.scheduledTime = scheduledTime;
-
-
     }
 }
